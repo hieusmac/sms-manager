@@ -1,0 +1,3 @@
+Command: npx bun --hot src/index.ts
+Output:
+🚀 Server running at http://localhost:4000/

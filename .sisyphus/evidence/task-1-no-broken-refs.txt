@@ -1,0 +1,7 @@
+Command: verification checks
+Output:
+ls src/ => App.tsx, index.ts, index.html, index.css, frontend.tsx
+ls src/components/ui/ => button.tsx, card.tsx, input.tsx, label.tsx, progress.tsx, select.tsx, switch.tsx, table.tsx, textarea.tsx
+grep package.json android-sms-gateway => found
+grep src/index.html SMS Manager => found title line
+grep src/* logo.svg => no matches
