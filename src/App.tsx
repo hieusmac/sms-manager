@@ -1,20 +1,30 @@
 import { useState } from "react";
+
+import { Navbar } from "./components/Navbar";
+import { MainPage } from "./pages/MainPage";
+import SettingsPage from "./pages/SettingsPage";
+
 import "./index.css";
 
 export function App() {
-  const [currentPage, setCurrentPage] = useState<"main" | "settings">("main");
+	const [currentPage, setCurrentPage] = useState<"main" | "settings">("main");
+	const [isSendAllRunning, setIsSendAllRunning] = useState(false);
 
-  return (
-    <div className="dark min-h-screen flex flex-col">
-      <div className="flex gap-2 p-4">
-        <button type="button" onClick={() => setCurrentPage("main")}>Main</button>
-        <button type="button" onClick={() => setCurrentPage("settings")}>Settings</button>
-      </div>
-      <main className="flex flex-1 items-center justify-center">
-        {currentPage === "main" ? <div>Main Page Placeholder</div> : <div>Settings Placeholder</div>}
-      </main>
-    </div>
-  );
+	return (
+		<div className="dark min-h-screen bg-background text-foreground">
+			<Navbar currentPage={currentPage} onNavigate={setCurrentPage} />
+			<main className="pr-16">
+				{currentPage === "main" ? (
+					<MainPage
+						isSendAllRunning={isSendAllRunning}
+						onSendAllStateChange={setIsSendAllRunning}
+					/>
+				) : (
+					<SettingsPage />
+				)}
+			</main>
+		</div>
+	);
 }
 
 export default App;

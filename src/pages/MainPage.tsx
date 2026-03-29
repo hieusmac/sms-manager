@@ -1,15 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CSVUpload from "../components/CSVUpload";
 import { DriverTable } from "../components/DriverTable";
+import { SendAllButton } from "../components/SendAllButton";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import { runWithConcurrency } from "../lib/queue";
 import { checkStatus, sendSMS } from "../lib/sms";
 import { loadCredentials, loadDrivers, saveDrivers } from "../lib/storage";
 import type { Driver, DriverWithStatus, SMSStatus } from "../types";
 
 interface MainPageProps {
 	isSendAllRunning: boolean;
-	onSendAll: () => void;
+	onSendAllStateChange?: (running: boolean) => void;
 }
 
 function mapGatewayStateToStatus(state: string): SMSStatus {
@@ -33,12 +35,19 @@ function toDriverWithStatus(driver: Driver): DriverWithStatus {
 	return { ...driver, status: "idle" };
 }
 
-export function MainPage({ isSendAllRunning }: MainPageProps) {
+export function MainPage({
+	isSendAllRunning,
+	onSendAllStateChange,
+}: MainPageProps) {
 	const [drivers, setDrivers] = useState<DriverWithStatus[]>([]);
 	const [globalMessage, setGlobalMessage] = useState("");
+	const [isSendAllRunningLocal, setIsSendAllRunningLocal] = useState(false);
+	const [sendAllSentCount, setSendAllSentCount] = useState(0);
+	const [sendAllTotalCount, setSendAllTotalCount] = useState(0);
 	const pollingIntervalsRef = useRef<
 		Map<string, ReturnType<typeof setInterval>>
 	>(new Map());
+	const driversRef = useRef<DriverWithStatus[]>([]);
 
 	useEffect(() => {
 		const storedDrivers = loadDrivers();
@@ -52,7 +61,21 @@ export function MainPage({ isSendAllRunning }: MainPageProps) {
 		};
 	}, []);
 
+	useEffect(() => {
+		driversRef.current = drivers;
+	}, [drivers]);
+
 	const hasCredentials = loadCredentials() !== null;
+
+	const sendableDrivers = useMemo(() => {
+		return drivers.filter(
+			(d) =>
+				d.enabled &&
+				d.status !== "pending" &&
+				d.status !== "processed" &&
+				d.status !== "sent",
+		);
+	}, [drivers]);
 
 	const persistDrivers = useCallback((next: DriverWithStatus[]) => {
 		saveDrivers(
@@ -163,13 +186,11 @@ export function MainPage({ isSendAllRunning }: MainPageProps) {
 
 	const handleSend = useCallback(
 		async (driverId: string) => {
-			const driver = drivers.find((d) => d.id === driverId);
+			const driver = driversRef.current.find((d) => d.id === driverId);
 			if (!driver) return;
 
 			const credentials = loadCredentials();
-			if (!credentials) {
-				return;
-			}
+			if (!credentials) return;
 
 			setDrivers((prev) =>
 				prev.map((d) =>
@@ -205,8 +226,38 @@ export function MainPage({ isSendAllRunning }: MainPageProps) {
 				);
 			}
 		},
-		[drivers, startPolling],
+		[startPolling],
 	);
+
+	const handleSendAll = useCallback(async () => {
+		if (isSendAllRunningLocal) return;
+
+		const credentials = loadCredentials();
+		if (!credentials) return;
+
+		if (sendableDrivers.length === 0) return;
+
+		setIsSendAllRunningLocal(true);
+		setSendAllSentCount(0);
+		setSendAllTotalCount(sendableDrivers.length);
+		onSendAllStateChange?.(true);
+
+		try {
+			const tasks = sendableDrivers.map((driver) => async () => {
+				await handleSend(driver.id);
+				setSendAllSentCount((c) => c + 1);
+			});
+			await runWithConcurrency(tasks, 5);
+		} finally {
+			setIsSendAllRunningLocal(false);
+			onSendAllStateChange?.(false);
+		}
+	}, [
+		handleSend,
+		isSendAllRunningLocal,
+		onSendAllStateChange,
+		sendableDrivers,
+	]);
 
 	return (
 		<div className="mx-auto flex w-full max-w-6xl flex-col gap-4 p-4">
@@ -236,6 +287,18 @@ export function MainPage({ isSendAllRunning }: MainPageProps) {
 				onSend={handleSend}
 				isSendAllRunning={isSendAllRunning}
 				hasCredentials={hasCredentials}
+			/>
+
+			<SendAllButton
+				onClick={handleSendAll}
+				disabled={
+					!hasCredentials ||
+					sendableDrivers.length === 0 ||
+					isSendAllRunningLocal
+				}
+				isRunning={isSendAllRunningLocal}
+				sentCount={sendAllSentCount}
+				totalCount={sendAllTotalCount}
 			/>
 		</div>
 	);
