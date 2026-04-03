@@ -1,0 +1,1 @@
+{"id":"mock-bbd29455-aabb-4724-bd49-0ac31cd3de74","state":"Pending","recipients":[{"phoneNumber":"+1234567890","state":"Pending"}]}

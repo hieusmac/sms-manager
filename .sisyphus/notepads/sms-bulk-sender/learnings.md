@@ -13,3 +13,12 @@
 - body CSS has `grid place-items-center` + logo background animation — must remove
 - Bun CLI may not be on PATH in this environment; `npx bun ...` worked as a fallback for install/dev commands.
 - shadcn install created `src/components/ui/switch.tsx`, `progress.tsx`, and `table.tsx` plus existing ui primitives.
+
+## [2026-03-29] Task 8 (Main page UI)
+- Persist only `Driver` fields to localStorage (status/error/messageId are UI-only) by stripping them before calling `saveDrivers`.
+- Credentials should be read at action-time (send), not on mount, since Settings can update localStorage without a reload.
+- Polling cleanup: track intervals in a `useRef(Map)` keyed by driverId; always clear on unmount and when starting a new poll for the same driver.
+
+## [2026-03-29] Task 9 (Send All)
+- Avoid stale closure in per-row send handlers used by Send All: keep a `driversRef` synced via `useEffect`, and read the current driver snapshot from the ref inside `handleSend`.
+- Compute sendable/enabled drivers via `useMemo` and run tasks with a small concurrency helper (`runWithConcurrency`) to cap parallel sends (limit=5).

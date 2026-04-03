@@ -1,0 +1,9 @@
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET,POST,OPTIONS
+Access-Control-Allow-Headers: Content-Type, X-Gateway-Login, X-Gateway-Password, X-Gateway-URL
+Content-Type: application/json;charset=utf-8
+Date: Sun, 29 Mar 2026 09:47:48 GMT
+Content-Length: 131
+
+{"id":"mock-bd59cf5f-a7bf-4e5d-b74a-f06d79ac63ef","state":"Pending","recipients":[{"phoneNumber":"+1234567890","state":"Pending"}]}

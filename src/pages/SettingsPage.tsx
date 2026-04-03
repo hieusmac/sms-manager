@@ -4,9 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-import type { GatewayCredentials } from "../types";
 import { loadCredentials, saveCredentials } from "../lib/storage";
+import type { GatewayCredentials } from "../types";
 
 type InlineStatus =
 	| { kind: "idle" }
@@ -72,7 +71,8 @@ export default function SettingsPage() {
 		if (!canSubmit) {
 			setStatus({
 				kind: "error",
-				message: "Please fill in Login, Password, and Server URL before testing.",
+				message:
+					"Please fill in Login, Password, and Server URL before testing.",
 			});
 			return;
 		}

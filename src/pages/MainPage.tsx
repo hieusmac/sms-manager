@@ -89,9 +89,9 @@ export function MainPage({
 		const next = uploaded.map(toDriverWithStatus);
 		setDrivers(next);
 
-		pollingIntervalsRef.current.forEach((intervalId) =>
-			clearInterval(intervalId),
-		);
+		pollingIntervalsRef.current.forEach((intervalId) => {
+			clearInterval(intervalId);
+		});
 		pollingIntervalsRef.current.clear();
 	}, []);
 
