@@ -79,21 +79,21 @@ Bun.serve({
         const body = await req.json();
         const message = typeof body?.message === "string" ? body.message : "";
         const phoneNumbers = Array.isArray(body?.phoneNumbers)
-          ? body.phoneNumbers.filter((value): value is string => typeof value === "string")
+          ? body.phoneNumbers.filter((value: unknown): value is string => typeof value === "string")
           : [];
 
         const id = `mock-${crypto.randomUUID()}`;
         messages.set(id, {
           message,
           state: "Pending",
-          recipients: phoneNumbers.map((phoneNumber) => ({ phoneNumber, state: "Pending" })),
+          recipients: phoneNumbers.map((phoneNumber: unknown) => ({ phoneNumber, state: "Pending" })),
           createdAt: Date.now(),
         });
 
         return json({
           id,
           state: "Pending",
-          recipients: phoneNumbers.map((phoneNumber) => ({ phoneNumber, state: "Pending" })),
+          recipients: phoneNumbers.map((phoneNumber: unknown) => ({ phoneNumber, state: "Pending" })),
         });
       })().catch(() => json({ error: "Invalid JSON" }, 400));
     }
